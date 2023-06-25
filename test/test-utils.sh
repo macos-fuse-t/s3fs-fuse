@@ -379,6 +379,18 @@ function make_random_string() {
 }
 
 #
+# $1:    sleep seconds
+# $2:    OS type(ex. 'Darwin', unset(means all os type))
+#
+function wait_ostype() {
+    if [ -z "$2" ] || uname | grep -q "$2"; then
+        if [ -n "$1" ] && ! (echo "$1" | grep -q '[^0-9]'); then
+            sleep "$1"
+        fi
+    fi
+}
+
+#
 # Local variables:
 # tab-width: 4
 # c-basic-offset: 4
