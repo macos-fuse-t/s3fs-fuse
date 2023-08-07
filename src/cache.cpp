@@ -264,13 +264,13 @@ bool StatCache::GetStat(const std::string& key, struct stat* pst, headers_t* met
                 S3FS_PRN_DBG("stat cache hit [path=%s][time=%lld.%09ld][hit count=%lu]",
                     strpath.c_str(), static_cast<long long>(ent->cache_date.tv_sec), ent->cache_date.tv_nsec, ent->hit_count);
 
-                if(pst!= NULL){
+                if(pst!= nullptr){
                     *pst= ent->stbuf;
                 }
-                if(meta != NULL){
+                if(meta != nullptr){
                     *meta = ent->meta;
                 }
-                if(pisforce != NULL){
+                if(pisforce != nullptr){
                     (*pisforce) = ent->isforce;
                 }
                 ent->hit_count++;
@@ -315,7 +315,7 @@ bool StatCache::IsNoObjectCache(const std::string& key, bool overcheck)
     }
 
     if(iter != stat_cache.end() && (*iter).second) {
-        stat_cache_entry* ent = (*iter).second;
+        const stat_cache_entry* ent = (*iter).second;
         if(0 < ent->notruncate || !IsExpireTime || !IsExpireStatCacheTime((*iter).second->cache_date, ExpireTime)){
             if((*iter).second->noobjcache){
                 // noobjcache = true means no object.
@@ -353,6 +353,8 @@ bool StatCache::AddStat(const std::string& key, const headers_t& meta, bool forc
         DelStat(key.c_str());
     }else{
         if(do_truncate){
+            // cppcheck-suppress unmatchedSuppression
+            // cppcheck-suppress knownConditionTrueFalse
             if(!TruncateCache()){
                 return false;
             }
@@ -476,6 +478,8 @@ bool StatCache::AddNoObjectCache(const std::string& key)
         DelStat(key.c_str());
     }else{
         if(do_truncate){
+            // cppcheck-suppress unmatchedSuppression
+            // cppcheck-suppress knownConditionTrueFalse
             if(!TruncateCache()){
                 return false;
             }
@@ -542,7 +546,7 @@ bool StatCache::TruncateCache()
             stat_cache_entry* entry = iter->second;
             if(!entry || (0L == entry->notruncate && IsExpireStatCacheTime(entry->cache_date, ExpireTime))){
                 delete entry;
-                stat_cache.erase(iter++);
+                iter = stat_cache.erase(iter);
             }else{
                 ++iter;
             }
@@ -559,7 +563,7 @@ bool StatCache::TruncateCache()
     statiterlist_t    erase_iters;
     for(stat_cache_t::iterator iter = stat_cache.begin(); iter != stat_cache.end() && 0 < erase_count; ++iter){
         // check no truncate
-        stat_cache_entry* ent = iter->second;
+        const stat_cache_entry* ent = iter->second;
         if(ent && 0L < ent->notruncate){
             // skip for no truncate entry and keep extra counts for this entity.
             if(0 < erase_count){
@@ -674,6 +678,8 @@ bool StatCache::AddSymlink(const std::string& key, const std::string& value)
         DelSymlink(key.c_str());
     }else{
         if(do_truncate){
+            // cppcheck-suppress unmatchedSuppression
+            // cppcheck-suppress knownConditionTrueFalse
             if(!TruncateSymlink()){
                 return false;
             }
@@ -712,7 +718,7 @@ bool StatCache::TruncateSymlink()
             symlink_cache_entry* entry = iter->second;
             if(!entry || IsExpireStatCacheTime(entry->cache_date, ExpireTime)){  // use the same as Stats
                 delete entry;
-                symlink_cache.erase(iter++);
+                iter = symlink_cache.erase(iter);
             }else{
                 ++iter;
             }
@@ -795,7 +801,7 @@ bool convert_header_to_stat(const char* path, const headers_t& meta, struct stat
             mtime.tv_sec  = 0;
             mtime.tv_nsec = 0;
         }
-        set_timespec_to_stat(*pst, ST_TYPE_MTIME, mtime);
+        set_timespec_to_stat(*pst, stat_time_type::MTIME, mtime);
     }
 
     // ctime
@@ -807,7 +813,7 @@ bool convert_header_to_stat(const char* path, const headers_t& meta, struct stat
             ctime.tv_sec  = 0;
             ctime.tv_nsec = 0;
         }
-        set_timespec_to_stat(*pst, ST_TYPE_CTIME, ctime);
+        set_timespec_to_stat(*pst, stat_time_type::CTIME, ctime);
     }
 
     // atime
@@ -819,7 +825,7 @@ bool convert_header_to_stat(const char* path, const headers_t& meta, struct stat
             atime.tv_sec  = 0;
             atime.tv_nsec = 0;
         }
-        set_timespec_to_stat(*pst, ST_TYPE_ATIME, atime);
+        set_timespec_to_stat(*pst, stat_time_type::ATIME, atime);
     }
 
     // size

@@ -22,8 +22,8 @@
 #define S3FS_CURL_H_
 
 #include <curl/curl.h>
-#include <list>
 #include <map>
+#include <memory>
 #include <vector>
 
 #include "autolock.h"
@@ -83,7 +83,7 @@ class Semaphore;
 typedef bool (*s3fscurl_lazy_setup)(S3fsCurl* s3fscurl);
 
 typedef std::map<std::string, std::string> sseckeymap_t;
-typedef std::list<sseckeymap_t>            sseckeylist_t;
+typedef std::vector<sseckeymap_t>          sseckeylist_t;
 
 // Class for lapping curl
 //
@@ -92,23 +92,23 @@ class S3fsCurl
     friend class S3fsMultiCurl;
 
     private:
-        enum REQTYPE {
-            REQTYPE_UNSET  = -1,
-            REQTYPE_DELETE = 0,
-            REQTYPE_HEAD,
-            REQTYPE_PUTHEAD,
-            REQTYPE_PUT,
-            REQTYPE_GET,
-            REQTYPE_CHKBUCKET,
-            REQTYPE_LISTBUCKET,
-            REQTYPE_PREMULTIPOST,
-            REQTYPE_COMPLETEMULTIPOST,
-            REQTYPE_UPLOADMULTIPOST,
-            REQTYPE_COPYMULTIPOST,
-            REQTYPE_MULTILIST,
-            REQTYPE_IAMCRED,
-            REQTYPE_ABORTMULTIUPLOAD,
-            REQTYPE_IAMROLE
+        enum class REQTYPE {
+            UNSET  = -1,
+            DELETE = 0,
+            HEAD,
+            PUTHEAD,
+            PUT,
+            GET,
+            CHKBUCKET,
+            LISTBUCKET,
+            PREMULTIPOST,
+            COMPLETEMULTIPOST,
+            UPLOADMULTIPOST,
+            COPYMULTIPOST,
+            MULTILIST,
+            IAMCRED,
+            ABORTMULTIUPLOAD,
+            IAMROLE
         };
 
         // class variables
@@ -268,7 +268,7 @@ class S3fsCurl
         static bool InitCredentialObject(S3fsCred* pcredobj);
         static bool InitMimeType(const std::string& strFile);
         static bool DestroyS3fsCurl();
-        static S3fsCurl* CreateParallelS3fsCurl(const char* tpath, int fd, off_t start, off_t size, int part_num, bool is_copy, etagpair* petag, const std::string& upload_id, int& result);
+        static std::unique_ptr<S3fsCurl> CreateParallelS3fsCurl(const char* tpath, int fd, off_t start, off_t size, int part_num, bool is_copy, etagpair* petag, const std::string& upload_id, int& result);
         static int ParallelMultipartUploadRequest(const char* tpath, headers_t& meta, int fd);
         static int ParallelMixMultipartUploadRequest(const char* tpath, headers_t& meta, int fd, const fdpage_list_t& mixuppages);
         static int ParallelGetObjectRequest(const char* tpath, int fd, off_t start, off_t size);
@@ -348,7 +348,7 @@ class S3fsCurl
         int RequestPerform(bool dontAddAuthHeaders=false);
         int DeleteRequest(const char* tpath);
         int GetIAMv2ApiToken(const char* token_url, int token_ttl, const char* token_ttl_hdr, std::string& response);
-        bool PreHeadRequest(const char* tpath, const char* bpath = NULL, const char* savedpath = NULL, size_t ssekey_pos = -1);
+        bool PreHeadRequest(const char* tpath, const char* bpath = nullptr, const char* savedpath = nullptr, size_t ssekey_pos = -1);
         bool PreHeadRequest(const std::string& tpath, const std::string& bpath, const std::string& savedpath, size_t ssekey_pos = -1) {
           return PreHeadRequest(tpath.c_str(), bpath.c_str(), savedpath.c_str(), ssekey_pos);
         }

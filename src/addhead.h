@@ -21,7 +21,9 @@
 #ifndef S3FS_ADDHEAD_H_
 #define S3FS_ADDHEAD_H_
 
+#include <memory>
 #include <regex.h>
+#include <vector>
 
 #include "metaheader.h"
 
@@ -29,13 +31,19 @@
 // Structure / Typedef
 //----------------------------------------------
 typedef struct add_header{
-    regex_t*      pregex;         // not NULL means using regex, NULL means comparing suffix directly.
+    ~add_header() {
+        if(pregex){
+            regfree(pregex.get());
+        }
+    }
+
+    std::unique_ptr<regex_t> pregex;         // not nullptr means using regex, nullptr means comparing suffix directly.
     std::string   basestring;
     std::string   headkey;
     std::string   headvalue;
 }ADDHEAD;
 
-typedef std::vector<ADDHEAD *> addheadlist_t;
+typedef std::vector<std::unique_ptr<ADDHEAD>> addheadlist_t;
 
 //----------------------------------------------
 // Class AdditionalHeader
