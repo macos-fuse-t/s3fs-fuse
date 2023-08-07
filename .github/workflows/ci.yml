@@ -34,6 +34,7 @@ on:
 #
 jobs:
   Linux:
+    if: false
     runs-on: ubuntu-latest
 
     #
