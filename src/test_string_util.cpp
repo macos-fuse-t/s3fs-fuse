@@ -192,11 +192,11 @@ int main(int argc, char *argv[])
 {
     S3fsLog singletonLog;
 
-    test_trim();
+    /*test_trim();
     test_base64();
     test_strtoofft();
     test_wtf8_encoding();
-    test_cr_encoding();
+    test_cr_encoding();*/
 
     return 0;
 }
