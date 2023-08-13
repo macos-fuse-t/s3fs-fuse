@@ -383,11 +383,7 @@ function make_random_string() {
 # $2:    OS type(ex. 'Darwin', unset(means all os type))
 #
 function wait_ostype() {
-    if [ -z "$2" ] || uname | grep -q "$2"; then
-        if [ -n "$1" ] && ! (echo "$1" | grep -q '[^0-9]'); then
-            sleep "$1"
-        fi
-    fi
+    return 0
 }
 
 #

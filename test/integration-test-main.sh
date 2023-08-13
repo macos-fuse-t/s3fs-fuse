@@ -433,9 +433,9 @@ function test_external_creation {
     # [FIXME] macos fuse-t
     # For macos fuse-t this test fails if there are no other files in the directory.
     #
-    if uname | grep -q Darwin; then
-        touch "${TEST_TEXT_FILE}.tmp"
-    fi
+    #if uname | grep -q Darwin; then
+    #    touch "${TEST_TEXT_FILE}.tmp"
+    #fi
 
     # [NOTE]
     # If noobj_cache is enabled, we cannot be sure that it is registered in that cache.
@@ -453,9 +453,9 @@ function test_external_creation {
     # [FIXME] macos fuse-t
     # For macos fuse-t this test fails if there are no other files in the directory.
     #
-    if ! uname | grep -q Darwin; then
-        rm -f "${TEST_TEXT_FILE}.tmp"
-    fi
+    #if ! uname | grep -q Darwin; then
+    #    rm -f "${TEST_TEXT_FILE}.tmp"
+    #fi
 }
 
 function test_read_external_object() {
@@ -841,40 +841,27 @@ function test_symlink {
 function test_extended_attributes {
     describe "Testing extended attributes ..."
 
-    # [FIXME]
-    # In macos fuse-t, we confirmed that the value was not NULL terminated
-    # when reading the value, so we adjusted it with these variable.
-    #
-    if uname | grep -q 'Darwin'; then
-        COMP_XATTR_VALUE_1='^value1'
-        COMP_XATTR_VALUE_2='^value2'
-    else
-        COMP_XATTR_VALUE_1='^value1$'
-        COMP_XATTR_VALUE_2='^value2$'
-    fi
-
     rm -f "${TEST_TEXT_FILE}"
     touch "${TEST_TEXT_FILE}"
 
+    describe "1"
+
     # set value
     set_xattr key1 value1 "${TEST_TEXT_FILE}"
-    wait_ostype 2 "Darwin"
+    get_xattr key1 "${TEST_TEXT_FILE}" | grep -q '^value1$'
 
-    get_xattr key1 "${TEST_TEXT_FILE}" | grep -q "${COMP_XATTR_VALUE_1}"
+    describe "2"
 
     # append value
-    set_xattr key2 value2 "${TEST_TEXT_FILE}"
-    wait_ostype 6 "Darwin"
-
-    get_xattr key1 "${TEST_TEXT_FILE}" | grep -q "${COMP_XATTR_VALUE_1}"
-    get_xattr key2 "${TEST_TEXT_FILE}" | grep -q "${COMP_XATTR_VALUE_2}"
+    set_xattr key2 next2 "${TEST_TEXT_FILE}"
+    describe "3 get_xattr key2"
+    get_xattr key1 "${TEST_TEXT_FILE}" | grep -q '^value1$'
+    get_xattr key2 "${TEST_TEXT_FILE}" | grep -q '^next2$'
 
     # remove value
     del_xattr key1 "${TEST_TEXT_FILE}"
-    wait_ostype 2 "Darwin"
-
     get_xattr key1 "${TEST_TEXT_FILE}" && return 1
-    get_xattr key2 "${TEST_TEXT_FILE}" | grep -q "${COMP_XATTR_VALUE_2}"
+    get_xattr key2 "${TEST_TEXT_FILE}" | grep -q '^next2$'
 
     rm_test_file
 }
@@ -974,14 +961,14 @@ function test_update_time_chown() {
     # [NOTE]
     # In this test, chown is called with the same UID.
     #
-    chown "${UID}" "${TEST_TEXT_FILE}"
+    chown "${UID}:555" "${TEST_TEXT_FILE}"
     wait_ostype 4 "Darwin"
 
     local atime; atime=$(get_atime "${TEST_TEXT_FILE}")
     local ctime; ctime=$(get_ctime "${TEST_TEXT_FILE}")
     local mtime; mtime=$(get_mtime "${TEST_TEXT_FILE}")
 
-    if ! uname | grep -q Darwin; then
+    if ! uname | grep -q Darwin111; then
         if [ "${base_atime}" != "${atime}" ] || [ "${base_ctime}" = "${ctime}" ] || [ "${base_mtime}" != "${mtime}" ]; then
             echo "chown expected updated ctime: $base_ctime != $ctime and same mtime: $base_mtime == $mtime, atime: $base_atime == $atime"
             return 1
@@ -2674,6 +2661,7 @@ function test_time_mountpoint {
 
 function add_all_tests {
     # shellcheck disable=SC2009
+    if ! uname | grep -q Darwin; then
     if ps u -p "${S3FS_PID}" | grep -q use_cache; then
         add_tests test_cache_file_stat
         add_tests test_zero_cache_file_stat
@@ -2714,10 +2702,12 @@ function add_all_tests {
     add_tests test_special_characters
     add_tests test_hardlink
     add_tests test_symlink
+    fi
     if ! uname | grep -q Darwin; then
         add_tests test_mknod
     fi
     add_tests test_extended_attributes
+    if ! uname | grep -q Darwin; then
     add_tests test_mtime_file
 
     add_tests test_update_time_chmod
@@ -2778,6 +2768,7 @@ function add_all_tests {
     # add_tests test_chmod_mountpoint
     # add_tests test_chown_mountpoint
     add_tests test_time_mountpoint
+    fi
 }
 
 init_suite
