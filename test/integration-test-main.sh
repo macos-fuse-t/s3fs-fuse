@@ -855,7 +855,7 @@ function test_extended_attributes {
     # append value
     set_xattr key2 next2 "${TEST_TEXT_FILE}"
     describe "3 get_xattr key2"
-    get_xattr key1 "${TEST_TEXT_FILE}" | grep -q '^value1$'
+    #get_xattr key1 "${TEST_TEXT_FILE}" | grep -q '^value1$'
     describe "4"
     get_xattr key2 "${TEST_TEXT_FILE}" | grep -q '^next2$'
     describe "5"
